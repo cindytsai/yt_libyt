@@ -97,10 +97,14 @@ class libytHierarchy(GridIndex):
 
         # get hierarchy information of all grids from libyt
         hierarchy = self.libyt.hierarchy
-        self.grid_dimensions = hierarchy["grid_dimensions"]
-        self.grid_left_edge = self.ds.arr(hierarchy["grid_left_edge"], "code_length")
-        self.grid_right_edge = self.ds.arr(hierarchy["grid_right_edge"], "code_length")
-        self.grid_levels = hierarchy["grid_levels"]
+        self.grid_dimensions = np.array(hierarchy["grid_dimensions"], copy=False)
+        self.grid_left_edge = self.ds.arr(
+            np.array(hierarchy["grid_left_edge"], copy=False), "code_length"
+        )
+        self.grid_right_edge = self.ds.arr(
+            np.array(hierarchy["grid_right_edge"], copy=False), "code_length"
+        )
+        self.grid_levels = np.array(hierarchy["grid_levels"], copy=False)
 
         # derive max_level
         self.max_level = self.grid_levels.max()
@@ -108,13 +112,15 @@ class libytHierarchy(GridIndex):
         # derive grid_particle_count from par_count_list.
         # par_count_list is created only if there is particles.
         if "par_count_list" in hierarchy:
-            self.grid_particle_count = np.sum(hierarchy["par_count_list"], axis=1)
+            self.grid_particle_count = np.sum(
+                np.array(hierarchy["par_count_list"], copy=False), axis=1
+            )
             self.grid_particle_count = self.grid_particle_count[..., np.newaxis]
         else:
             self.grid_particle_count = np.zeros((self.num_grids, 1), "int32")
 
         # Indicates which MPI rank it belongs to.
-        self.proc_num = hierarchy["proc_num"]
+        self.proc_num = np.array(hierarchy["proc_num"], copy=False)
 
         # allocate all grid objects
         self.grids = np.empty(self.num_grids, dtype="object")
@@ -126,7 +132,7 @@ class libytHierarchy(GridIndex):
 
     def _populate_grid_objects(self):
         # must flat it since 'grid_parent_id' has the dimension [num_grids][1]
-        parent_list = self.libyt.hierarchy["grid_parent_id"].flat
+        parent_list = np.array(self.libyt.hierarchy["grid_parent_id"], copy=False).flat
         index_offset = self.libyt.param_yt["index_offset"]
 
         for index in range(self.num_grids):
