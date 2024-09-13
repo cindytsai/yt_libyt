@@ -444,7 +444,7 @@ class libytIOHandler(BaseIOHandler):
             # We don't create key-value pair if no data pass in from user.
             try:
                 if nonlocal_data is None:
-                    data_convert = self.grid_data[grid.id][fname]
+                    data_convert = np.array(self.grid_data[grid.id][fname], copy=False)
                 else:
                     data_convert = nonlocal_data[grid.id][fname]
             except Exception as err:
@@ -468,7 +468,7 @@ class libytIOHandler(BaseIOHandler):
             # We don't create key-value pair if no data pass in from user.
             try:
                 if nonlocal_data is None:
-                    data_temp = self.grid_data[grid.id][fname]
+                    data_temp = np.array(self.grid_data[grid.id][fname], copy=False)
                 else:
                     data_temp = nonlocal_data[grid.id][fname]
             except Exception as err:
