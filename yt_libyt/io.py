@@ -51,6 +51,7 @@ class libytIOHandler(BaseIOHandler):
 
         # Get index offset and particle data dict
         index_offset = self.param_yt["index_offset"]
+        par_count_list = np.array(self.hierarchy["par_count_list"], copy=False)
         particle_data = self.libyt.particle_data
 
         for chunk in chunks:
@@ -59,7 +60,7 @@ class libytIOHandler(BaseIOHandler):
                 for ptype in ptf.keys():
                     # Get particle count in ptype, continue if it is zero
                     index_label = self.param_yt["particle_list"][ptype]["label"]
-                    if self.hierarchy["par_count_list"][g.id - index_offset][index_label] == 0:
+                    if par_count_list[g.id - index_offset][index_label] == 0:
                         continue
 
                     coor_label = self.param_yt["particle_list"][ptype]["particle_coor_label"]
@@ -121,6 +122,7 @@ class libytIOHandler(BaseIOHandler):
 
         # Get index offset and particle data
         index_offset = self.param_yt["index_offset"]
+        par_count_list = np.array(self.hierarchy["par_count_list"], copy=False)
         particle_data = self.libyt.particle_data
 
         for chunk in chunks:
@@ -129,7 +131,7 @@ class libytIOHandler(BaseIOHandler):
                 for ptype in ptf.keys():
                     # get particle count in ptype, continue if it is zero
                     index_label = self.param_yt["particle_list"][ptype]["label"]
-                    if self.hierarchy["par_count_list"][g.id - index_offset][index_label] == 0:
+                    if par_count_list[g.id - index_offset][index_label] == 0:
                         continue
 
                     # fetch the position x/y/z of particle by ptype
@@ -336,7 +338,7 @@ class libytIOHandler(BaseIOHandler):
 
         # Get grid id that this rank has to prepare, grid id doesn't have to be 0-indexed
         index_offset = self.param_yt["index_offset"]
-        proc_num = self.hierarchy["proc_num"][:, 0]
+        proc_num = np.array(self.hierarchy["proc_num"], copy=False)[:, 0]
         index = np.argwhere(proc_num[recvbuf - index_offset] == self.myrank)
         to_prepare = list(np.unique(recvbuf[index]))
 
@@ -486,7 +488,7 @@ class libytIOHandler(BaseIOHandler):
             ]
 
             # Convert to cell-centered
-            grid_dim = self.hierarchy["grid_dimensions"][grid.id]
+            grid_dim = np.array(self.hierarchy["grid_dimensions"], copy=False)[grid.id]
             if field_list[fname]["contiguous_in_x"] is True:
                 grid_dim = np.flip(grid_dim)
             axis = np.argwhere(grid_dim != data_temp.shape).flatten()
