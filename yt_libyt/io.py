@@ -454,17 +454,29 @@ class libytIOHandler(BaseIOHandler):
             raise ValueError("libyt does not support removing ghost cells for this data.")
 
     def _convert_face_centered_to_cell_centered(self, fname, contiguous_in_x, grid_id, data):
-        grid_dim = self.hierarchy["grid_dimensions"][grid_id - self.param_yt["index_offset"]][
+        """Convert face-centered data to cell-centered data. The data does not contain ghost cells.
+        :param fname: field name
+        :param contiguous_in_x: contiguous in x direction or not, True if [z][y][x]
+        :param grid_id: grid id
+        :param data: face-centered data, which is a numpy array of 1/2/3 dim.
+        :return: return a new converted cell-centered data.
+        """
+        # calculate the dimension of the grid after converting to cell-centered data.
+        convert_to_dim = self.hierarchy["grid_dimensions"][grid_id - self.param_yt["index_offset"]][
             : self.param_yt["dimensionality"]
         ].copy()
         if contiguous_in_x is True:
-            grid_dim = np.flip(grid_dim)
-        axis = np.argwhere(grid_dim != data.shape).flatten()
-        if len(axis) != 1 or data.shape[axis[0]] - 1 != grid_dim[axis[0]]:
+            convert_to_dim = np.flip(convert_to_dim)
+        # for d, ghost_cell in enumerate(self.param_yt["field_list"][fname]["ghost_cell"]):
+        #     convert_to_dim[int(d/2)] += ghost_cell
+
+        # find the face-centered axis
+        axis = np.argwhere(convert_to_dim != data.shape).flatten()
+        if len(axis) != 1 or data.shape[axis[0]] - 1 != convert_to_dim[axis[0]]:
             mylog.error(
                 "Field [%s] in grid [%d] is not a face-centered data. "
                 "Data grid has dim %s, but it cannot be converted to dim = %s"
-                % (fname, grid_id, (data.shape,), grid_dim)
+                % (fname, grid_id, (data.shape,), convert_to_dim)
             )
             raise ValueError("Face-centered data dimension not match.")
 
